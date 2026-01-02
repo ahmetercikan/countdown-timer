@@ -5,290 +5,399 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Geri Sayım</title>
+    <title>K-POP COUNTDOWN</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { font-family: 'Poppins', sans-serif; }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(236, 72, 153, 0.8); }
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-
-        .container {
-            text-align: center;
-            padding: 20px;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            color: #e94560;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-
-        .timer-display {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px 20px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .seconds-display {
-            font-size: 5rem;
-            font-weight: bold;
-            color: #00fff5;
-            text-shadow: 0 0 30px rgba(0, 255, 245, 0.5);
-            margin-bottom: 10px;
-        }
-
-        .time-formatted {
-            font-size: 1.8rem;
-            color: #ffffff;
-            opacity: 0.9;
-        }
-
-        .label {
-            font-size: 1rem;
-            color: #aaa;
-            margin-top: 15px;
-        }
-
-        .buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-reset {
-            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
-            color: white;
-        }
-
-        .btn-reset:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            margin-top: 30px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00fff5, #00b894);
-            border-radius: 5px;
-            transition: width 1s linear;
-        }
-
-        .finished {
-            animation: pulse 0.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse {
-            from {
-                color: #00fff5;
-                text-shadow: 0 0 30px rgba(0, 255, 245, 0.5);
-            }
-            to {
-                color: #e94560;
-                text-shadow: 0 0 50px rgba(233, 69, 96, 0.8);
-            }
-        }
-
-        .status {
-            font-size: 0.9rem;
-            color: #00b894;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 480px) {
-            .seconds-display {
-                font-size: 3.5rem;
-            }
-            .time-formatted {
-                font-size: 1.4rem;
-            }
-            button {
-                padding: 12px 30px;
-                font-size: 1rem;
-            }
-        }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Geri Sayım</h1>
+    <div id="root"></div>
 
-        <div class="timer-display">
-            <div class="seconds-display" id="seconds">16200</div>
-            <div class="label">saniye</div>
-            <div class="time-formatted" id="formatted">04:30:00</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress"></div>
-            </div>
-        </div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-        <div class="buttons">
-            <button class="btn-reset" onclick="resetTimer()">Sıfırla (Yeni 4:30)</button>
-        </div>
+        // Lucide Icons as simple SVG components
+        const Heart = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        );
+        const Music = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        );
+        const Star = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        );
+        const Calendar = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        );
+        const Trash2 = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+        );
+        const Plus = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        );
+        const Sparkles = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        );
+        const Mic2 = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12"/><circle cx="17" cy="7" r="5"/></svg>
+        );
+        const PlayCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        );
 
-        <div class="status" id="status"></div>
-    </div>
+        // Arka plan resimleri
+        const backgroundImages = [
+            "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1574155376612-b8441999999a?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1514525253440-b393452e3383?q=80&w=1920&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1920&auto=format&fit=crop"
+        ];
 
-    <script>
-        const INITIAL_TIME = 4 * 60 * 60 + 30 * 60; // 4 saat 30 dakika = 16200 saniye
-        const STORAGE_KEY = 'countdown_end_time';
+        // localStorage key
+        const STORAGE_KEY = 'kpop_countdown_events';
 
-        let endTime;
-        let timerInterval = null;
-
-        const secondsDisplay = document.getElementById('seconds');
-        const formattedDisplay = document.getElementById('formatted');
-        const progressBar = document.getElementById('progress');
-        const statusDisplay = document.getElementById('status');
-
-        function formatTime(totalSeconds) {
-            if (totalSeconds < 0) totalSeconds = 0;
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        function getTimeLeft() {
-            return Math.max(0, Math.floor((endTime - Date.now()) / 1000));
-        }
-
-        function updateDisplay() {
-            const timeLeft = getTimeLeft();
-
-            secondsDisplay.textContent = timeLeft;
-            formattedDisplay.textContent = formatTime(timeLeft);
-
-            const progressPercent = (timeLeft / INITIAL_TIME) * 100;
-            progressBar.style.width = Math.max(0, progressPercent) + '%';
-
-            if (timeLeft <= 0) {
-                secondsDisplay.classList.add('finished');
-                statusDisplay.textContent = 'Süre doldu!';
-                stopTimer();
-            } else {
-                secondsDisplay.classList.remove('finished');
-                statusDisplay.textContent = 'Çalışıyor...';
+        // Varsayılan etkinlikler
+        const defaultEvents = [
+            {
+                id: 1,
+                title: "BLACKPINK Comeback",
+                date: "2026-06-15T18:00",
+                category: "comeback",
+                color: "from-pink-500 to-gray-900"
+            },
+            {
+                id: 2,
+                title: "Bias'ın Doğum Günü",
+                date: "2026-03-09T00:00",
+                category: "birthday",
+                color: "from-purple-400 to-blue-400"
+            },
+            {
+                id: 3,
+                title: "Dünya Turu: İstanbul",
+                date: "2026-09-20T20:00",
+                category: "concert",
+                color: "from-rose-400 to-orange-300"
             }
+        ];
+
+        const categories = {
+            comeback: { label: 'Comeback', icon: <Music size={18} />, bg: 'bg-pink-100', text: 'text-pink-600' },
+            birthday: { label: 'Doğum Günü', icon: <Heart size={18} />, bg: 'bg-purple-100', text: 'text-purple-600' },
+            concert: { label: 'Konser', icon: <Mic2 size={18} />, bg: 'bg-blue-100', text: 'text-blue-600' },
+            debut: { label: 'Debut', icon: <Star size={18} />, bg: 'bg-yellow-100', text: 'text-yellow-600' }
+        };
+
+        // Timer Box Component
+        function TimerBox({ value, label, color }) {
+            return (
+                <div className="flex flex-col items-center">
+                    <div className={`w-full aspect-square bg-gradient-to-br ${color} rounded-2xl flex items-center justify-center text-white shadow-lg mb-1 relative overflow-hidden`}>
+                        <span className="text-2xl md:text-3xl font-black tracking-tighter drop-shadow-sm">
+                            {String(value).padStart(2, '0')}
+                        </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">{label}</span>
+                </div>
+            );
         }
 
-        function startTimer() {
-            if (timerInterval) return;
-
-            timerInterval = setInterval(() => {
-                updateDisplay();
-                if (getTimeLeft() <= 0) {
-                    stopTimer();
+        function App() {
+            // localStorage'dan etkinlikleri yükle
+            const loadEvents = () => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    return JSON.parse(saved);
                 }
-            }, 1000);
-        }
+                return defaultEvents;
+            };
 
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
+            const [events, setEvents] = useState(loadEvents);
+            const [timeLeft, setTimeLeft] = useState({});
+            const [showModal, setShowModal] = useState(false);
+            const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
-        function resetTimer() {
-            stopTimer();
-            endTime = Date.now() + (INITIAL_TIME * 1000);
-            localStorage.setItem(STORAGE_KEY, endTime.toString());
-            updateDisplay();
-            startTimer();
-        }
-
-        function initTimer() {
-            const savedEndTime = localStorage.getItem(STORAGE_KEY);
-
-            if (savedEndTime) {
-                endTime = parseInt(savedEndTime);
-
-                // Eğer süre zaten dolmuşsa, yeni sayaç başlat
-                if (Date.now() >= endTime) {
-                    statusDisplay.textContent = 'Önceki süre dolmuş, yeni sayaç başlatıldı';
-                    resetTimer();
-                    return;
-                }
-            } else {
-                // İlk kez açılıyor, yeni sayaç başlat
-                endTime = Date.now() + (INITIAL_TIME * 1000);
-                localStorage.setItem(STORAGE_KEY, endTime.toString());
-            }
-
-            updateDisplay();
-            startTimer();
-        }
-
-        // Sayfa yüklendiğinde otomatik başlat
-        initTimer();
-
-        // Ekranın kapanmasını engelle (mobil için)
-        if ('wakeLock' in navigator) {
-            let wakeLock = null;
-
-            async function requestWakeLock() {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {
-                    console.log('Wake Lock error:', err);
-                }
-            }
-
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') {
-                    requestWakeLock();
-                    updateDisplay(); // Sayfa tekrar görünür olduğunda güncelle
-                }
+            const [newEvent, setNewEvent] = useState({
+                title: '',
+                date: '',
+                category: 'comeback'
             });
 
-            requestWakeLock();
+            // Etkinlikler değiştiğinde localStorage'a kaydet
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+            }, [events]);
+
+            // Arka plan slayt gösterisi
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    setCurrentBgIndex((prev) => (prev + 1) % backgroundImages.length);
+                }, 8000);
+                return () => clearInterval(interval);
+            }, []);
+
+            // Geri sayım hesaplama
+            const calculateTimeLeft = () => {
+                const now = new Date().getTime();
+                const newTimeLeft = {};
+
+                events.forEach(event => {
+                    const difference = new Date(event.date).getTime() - now;
+
+                    if (difference > 0) {
+                        newTimeLeft[event.id] = {
+                            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                            minutes: Math.floor((difference / 1000 / 60) % 60),
+                            seconds: Math.floor((difference / 1000) % 60),
+                        };
+                    } else {
+                        newTimeLeft[event.id] = null;
+                    }
+                });
+
+                setTimeLeft(newTimeLeft);
+            };
+
+            useEffect(() => {
+                calculateTimeLeft();
+                const timer = setInterval(calculateTimeLeft, 1000);
+                return () => clearInterval(timer);
+            }, [events]);
+
+            const handleAddEvent = (e) => {
+                e.preventDefault();
+                if (!newEvent.title || !newEvent.date) return;
+
+                let colorGradient = "from-pink-400 to-purple-400";
+                if (newEvent.category === 'concert') colorGradient = "from-rose-400 to-orange-300";
+                if (newEvent.category === 'birthday') colorGradient = "from-purple-400 to-blue-400";
+                if (newEvent.category === 'debut') colorGradient = "from-yellow-400 to-orange-400";
+
+                const event = {
+                    id: Date.now(),
+                    title: newEvent.title,
+                    date: newEvent.date,
+                    category: newEvent.category,
+                    color: colorGradient
+                };
+
+                setEvents([...events, event]);
+                setNewEvent({ title: '', date: '', category: 'comeback' });
+                setShowModal(false);
+            };
+
+            const handleDeleteEvent = (id) => {
+                setEvents(events.filter(event => event.id !== id));
+            };
+
+            return (
+                <div className="min-h-screen text-gray-800 relative overflow-hidden">
+
+                    {/* Background Slideshow */}
+                    <div className="fixed inset-0 z-0">
+                        {backgroundImages.map((img, index) => (
+                            <div
+                                key={img}
+                                className={`absolute inset-0 bg-cover bg-center transition-opacity duration-[2000ms] ease-in-out ${
+                                    index === currentBgIndex ? 'opacity-100' : 'opacity-0'
+                                }`}
+                                style={{ backgroundImage: `url(${img})` }}
+                            />
+                        ))}
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+                    </div>
+
+                    {/* Header */}
+                    <header className="sticky top-0 z-20 border-b border-white/20 shadow-lg bg-white/10 backdrop-blur-xl">
+                        <div className="max-w-4xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <div className="bg-gradient-to-r from-pink-500 to-purple-500 p-2 rounded-xl text-white shadow-lg shadow-pink-500/30">
+                                    <Sparkles size={24} />
+                                </div>
+                                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight drop-shadow-md">
+                                    K-POP COUNTDOWN
+                                </h1>
+                            </div>
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="bg-white/20 hover:bg-white/30 text-white px-3 md:px-4 py-2 rounded-full flex items-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-95 text-sm font-bold backdrop-blur-md border border-white/30"
+                            >
+                                <Plus size={18} />
+                                <span className="hidden sm:inline">Yeni Etkinlik</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8 relative z-10">
+
+                        {/* Video Bölümü */}
+                        <div className="mb-6 md:mb-8 bg-white/90 backdrop-blur-xl rounded-3xl p-4 md:p-6 shadow-xl shadow-pink-500/20 border border-white/50 relative overflow-hidden group hover:shadow-pink-500/40 transition-shadow">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500"></div>
+                            <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <PlayCircle className="text-pink-500" size={24} />
+                                Özel Video: Sabırsız Kız İçin
+                            </h2>
+                            <div className="relative rounded-2xl overflow-hidden shadow-inner bg-black aspect-video">
+                                <video
+                                    controls
+                                    className="w-full h-full object-contain"
+                                    poster="https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=1920&auto=format&fit=crop"
+                                >
+                                    <source src="Sabırsız_Kız_İçin_Video_İsteği.mp4" type="video/mp4" />
+                                    Tarayıcınız video etiketini desteklemiyor.
+                                </video>
+                            </div>
+                        </div>
+
+                        {events.length === 0 ? (
+                            <div className="text-center py-16 md:py-20 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl">
+                                <Music size={64} className="mx-auto text-pink-300 mb-4 drop-shadow-lg" />
+                                <p className="text-xl text-white font-medium">Henüz planlanmış bir etkinlik yok.</p>
+                                <p className="text-sm text-gray-200 mt-2">Bias'ının doğum günü veya comeback tarihi ekle!</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                {events.map((event) => {
+                                    const time = timeLeft[event.id];
+                                    const categoryData = categories[event.category];
+
+                                    return (
+                                        <div key={event.id} className="group relative bg-white/90 backdrop-blur-xl rounded-3xl p-5 md:p-6 shadow-xl shadow-black/20 border border-white/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                                            <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${event.color} rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity`}></div>
+
+                                            <div className="relative z-10">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${categoryData.bg} ${categoryData.text}`}>
+                                                        {categoryData.icon}
+                                                        {categoryData.label}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleDeleteEvent(event.id)}
+                                                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+
+                                                <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-1 truncate leading-tight">
+                                                    {event.title}
+                                                </h3>
+                                                <p className="text-gray-500 text-xs flex items-center gap-1 mb-5 md:mb-6 font-medium">
+                                                    <Calendar size={12} />
+                                                    {new Date(event.date).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+
+                                                {time ? (
+                                                    <div className="grid grid-cols-4 gap-2 text-center">
+                                                        <TimerBox value={time.days} label="GÜN" color={event.color} />
+                                                        <TimerBox value={time.hours} label="SAAT" color={event.color} />
+                                                        <TimerBox value={time.minutes} label="DAK" color={event.color} />
+                                                        <TimerBox value={time.seconds} label="SN" color={event.color} />
+                                                    </div>
+                                                ) : (
+                                                    <div className={`bg-gradient-to-r ${event.color} text-white text-center py-4 rounded-2xl font-bold text-lg animate-pulse shadow-md`}>
+                                                        ZAMANI GELDİ! 🎉
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Add Modal */}
+                    {showModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative border border-white/20">
+                                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                    <Sparkles className="text-pink-500" size={24} />
+                                    Etkinlik Ekle
+                                </h2>
+
+                                <form onSubmit={handleAddEvent} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Başlık</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Örn: Yeni Albüm Çıkışı"
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-pink-500 focus:outline-none transition-all font-medium"
+                                            value={newEvent.title}
+                                            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Tarih ve Saat</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-pink-500 focus:outline-none transition-all text-gray-600 font-medium"
+                                            value={newEvent.date}
+                                            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Kategori</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {Object.entries(categories).map(([key, value]) => (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    onClick={() => setNewEvent({ ...newEvent, category: key })}
+                                                    className={`p-3 rounded-xl text-sm font-bold border-2 transition-all flex items-center justify-center gap-2 ${
+                                                        newEvent.category === key
+                                                            ? 'border-pink-500 bg-pink-50 text-pink-700'
+                                                            : 'border-gray-100 hover:border-pink-200 text-gray-500 hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    {value.icon}
+                                                    {value.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3 mt-8">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowModal(false)}
+                                            className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-100 text-gray-600 font-bold hover:bg-gray-50 transition-colors"
+                                        >
+                                            İptal
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold hover:shadow-lg hover:shadow-pink-200 transition-all active:scale-95"
+                                        >
+                                            Oluştur
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
         }
 
-        // Sayfa görünür olduğunda zamanı güncelle
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                updateDisplay();
-            }
-        });
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
