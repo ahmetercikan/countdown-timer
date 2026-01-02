@@ -58,7 +58,7 @@
         }
 
         function App() {
-            const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+            const [secondsLeft, setSecondsLeft] = useState(0);
             const [currentBgIndex, setCurrentBgIndex] = useState(0);
             const [endTime, setEndTime] = useState(null);
 
@@ -99,13 +99,9 @@
                     const difference = endTime - now;
 
                     if (difference > 0) {
-                        setTimeLeft({
-                            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                            minutes: Math.floor((difference / 1000 / 60) % 60),
-                            seconds: Math.floor((difference / 1000) % 60),
-                        });
+                        setSecondsLeft(Math.floor(difference / 1000));
                     } else {
-                        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+                        setSecondsLeft(0);
                     }
                 };
 
@@ -114,7 +110,7 @@
                 return () => clearInterval(timer);
             }, [endTime]);
 
-            const isFinished = timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0 && endTime;
+            const isFinished = secondsLeft === 0 && endTime;
             const color = "from-purple-400 to-pink-400";
 
             return (
@@ -188,10 +184,13 @@
                                 </p>
 
                                 {!isFinished ? (
-                                    <div className="grid grid-cols-3 gap-3 md:gap-4 text-center max-w-md mx-auto">
-                                        <TimerBox value={timeLeft.hours} label="SAAT" color={color} />
-                                        <TimerBox value={timeLeft.minutes} label="DAKİKA" color={color} />
-                                        <TimerBox value={timeLeft.seconds} label="SANİYE" color={color} />
+                                    <div className="text-center">
+                                        <div className={`bg-gradient-to-br ${color} rounded-3xl py-8 md:py-12 px-6 shadow-xl max-w-xs mx-auto`}>
+                                            <span className="text-6xl md:text-8xl font-black text-white drop-shadow-lg">
+                                                {secondsLeft.toLocaleString('tr-TR')}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-bold text-gray-400 tracking-widest uppercase mt-3">SANİYE</p>
                                     </div>
                                 ) : (
                                     <div className={`bg-gradient-to-r ${color} text-white text-center py-6 rounded-2xl font-bold text-2xl animate-pulse shadow-md`}>
