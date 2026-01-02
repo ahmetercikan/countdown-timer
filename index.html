@@ -86,26 +86,6 @@
             letter-spacing: 1px;
         }
 
-        .btn-start {
-            background: linear-gradient(45deg, #00b894, #00cec9);
-            color: white;
-        }
-
-        .btn-start:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(0, 184, 148, 0.4);
-        }
-
-        .btn-stop {
-            background: linear-gradient(45deg, #e94560, #ff6b6b);
-            color: white;
-        }
-
-        .btn-stop:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
-        }
-
         .btn-reset {
             background: linear-gradient(45deg, #6c5ce7, #a29bfe);
             color: white;
@@ -147,6 +127,12 @@
             }
         }
 
+        .status {
+            font-size: 0.9rem;
+            color: #00b894;
+            margin-top: 20px;
+        }
+
         @media (max-width: 480px) {
             .seconds-display {
                 font-size: 3.5rem;
@@ -175,66 +161,67 @@
         </div>
 
         <div class="buttons">
-            <button class="btn-start" id="startBtn" onclick="startTimer()">Başlat</button>
-            <button class="btn-stop" id="stopBtn" onclick="stopTimer()">Durdur</button>
-            <button class="btn-reset" onclick="resetTimer()">Sıfırla</button>
+            <button class="btn-reset" onclick="resetTimer()">Sıfırla (Yeni 4:30)</button>
         </div>
+
+        <div class="status" id="status"></div>
     </div>
 
     <script>
         const INITIAL_TIME = 4 * 60 * 60 + 30 * 60; // 4 saat 30 dakika = 16200 saniye
-        let timeLeft = INITIAL_TIME;
+        const STORAGE_KEY = 'countdown_end_time';
+
+        let endTime;
         let timerInterval = null;
-        let isRunning = false;
 
         const secondsDisplay = document.getElementById('seconds');
         const formattedDisplay = document.getElementById('formatted');
         const progressBar = document.getElementById('progress');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
+        const statusDisplay = document.getElementById('status');
 
         function formatTime(totalSeconds) {
+            if (totalSeconds < 0) totalSeconds = 0;
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
+        function getTimeLeft() {
+            return Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+        }
+
         function updateDisplay() {
+            const timeLeft = getTimeLeft();
+
             secondsDisplay.textContent = timeLeft;
             formattedDisplay.textContent = formatTime(timeLeft);
 
             const progressPercent = (timeLeft / INITIAL_TIME) * 100;
-            progressBar.style.width = progressPercent + '%';
+            progressBar.style.width = Math.max(0, progressPercent) + '%';
 
             if (timeLeft <= 0) {
                 secondsDisplay.classList.add('finished');
+                statusDisplay.textContent = 'Süre doldu!';
                 stopTimer();
             } else {
                 secondsDisplay.classList.remove('finished');
+                statusDisplay.textContent = 'Çalışıyor...';
             }
         }
 
         function startTimer() {
-            if (isRunning || timeLeft <= 0) return;
-
-            isRunning = true;
-            startBtn.style.opacity = '0.5';
+            if (timerInterval) return;
 
             timerInterval = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    updateDisplay();
-                } else {
+                updateDisplay();
+                if (getTimeLeft() <= 0) {
                     stopTimer();
                 }
             }, 1000);
         }
 
         function stopTimer() {
-            isRunning = false;
-            startBtn.style.opacity = '1';
-
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
@@ -243,12 +230,36 @@
 
         function resetTimer() {
             stopTimer();
-            timeLeft = INITIAL_TIME;
+            endTime = Date.now() + (INITIAL_TIME * 1000);
+            localStorage.setItem(STORAGE_KEY, endTime.toString());
             updateDisplay();
+            startTimer();
         }
 
-        // Sayfa yüklendiğinde ekranı güncelle
-        updateDisplay();
+        function initTimer() {
+            const savedEndTime = localStorage.getItem(STORAGE_KEY);
+
+            if (savedEndTime) {
+                endTime = parseInt(savedEndTime);
+
+                // Eğer süre zaten dolmuşsa, yeni sayaç başlat
+                if (Date.now() >= endTime) {
+                    statusDisplay.textContent = 'Önceki süre dolmuş, yeni sayaç başlatıldı';
+                    resetTimer();
+                    return;
+                }
+            } else {
+                // İlk kez açılıyor, yeni sayaç başlat
+                endTime = Date.now() + (INITIAL_TIME * 1000);
+                localStorage.setItem(STORAGE_KEY, endTime.toString());
+            }
+
+            updateDisplay();
+            startTimer();
+        }
+
+        // Sayfa yüklendiğinde otomatik başlat
+        initTimer();
 
         // Ekranın kapanmasını engelle (mobil için)
         if ('wakeLock' in navigator) {
@@ -263,18 +274,21 @@
             }
 
             document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && isRunning) {
+                if (document.visibilityState === 'visible') {
                     requestWakeLock();
+                    updateDisplay(); // Sayfa tekrar görünür olduğunda güncelle
                 }
             });
 
-            // Timer başladığında wake lock iste
-            const originalStart = startTimer;
-            startTimer = function() {
-                originalStart();
-                requestWakeLock();
-            };
+            requestWakeLock();
         }
+
+        // Sayfa görünür olduğunda zamanı güncelle
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                updateDisplay();
+            }
+        });
     </script>
 </body>
 </html>
